@@ -56,7 +56,6 @@ async def send_dm(
     comment_id: str,
     idempotency_key: str,
 ) -> dict:
-    
     headers = {
         "X-API-Key": settings.pseudogram_api_key,
         "Content-Type": "application/json",
@@ -77,8 +76,8 @@ async def send_dm(
                 headers=headers,
             )
 
-        # 202 Accepted — DM queued (not yet delivered)
-        if response.status_code == 202:
+        # DM accepted (200 or 202)
+        if response.status_code in (200, 202):
             data = response.json()
             dm_id = data.get("dm_id")
             logger.info(f"DM accepted | dm_id={dm_id} user={recipient_user_id}")
@@ -104,7 +103,7 @@ async def send_dm(
                 "error": "rate_limited",
             }
 
-        # 500 Server error — safe to retry
+        # 500 Server error
         elif response.status_code == 500:
             logger.warning(f"PseudoGram 500 error | user={recipient_user_id}")
             return {
@@ -115,12 +114,10 @@ async def send_dm(
                 "error": "internal_error",
             }
 
-        # 400 Bad request — do NOT retry
+        # 400 Bad request
         elif response.status_code == 400:
             detail = response.json().get("detail", "unknown")
-            logger.error(
-                f"PseudoGram 400 bad request | user={recipient_user_id} detail={detail}"
-            )
+            logger.error(f"PseudoGram 400 bad request | user={recipient_user_id} detail={detail}")
             return {
                 "success": False,
                 "dm_id": None,
@@ -129,7 +126,6 @@ async def send_dm(
                 "error": f"bad_request: {detail}",
             }
 
-        # Any other unexpected response
         else:
             logger.error(
                 f"Unexpected PseudoGram response | status={response.status_code} user={recipient_user_id}"
