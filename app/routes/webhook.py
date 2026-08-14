@@ -19,6 +19,16 @@ async def receive_webhook(request: Request):
     raw_body = await request.body()
 
     signature = request.headers.get("X-PseudoGram-Signature")
+
+    logger.info(f"DEBUG signature header: {signature}")
+    logger.info(f"DEBUG all headers: {dict(request.headers)}")
+    logger.info(f"DEBUG body length: {len(raw_body)}")
+    logger.info(f"DEBUG body sample: {raw_body[:200]}")
+    
+    if not verify_signature(raw_body, settings.pseudogram_api_key, signature):
+        logger.warning("Invalid webhook signature")
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    
     if not verify_signature(raw_body, settings.pseudogram_api_key, signature):
         logger.warning("Invalid webhook signature")
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
