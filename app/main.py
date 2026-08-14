@@ -64,3 +64,13 @@ app.include_router(webhook.router)
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "linkplease"}
+
+@app.get("/debug-key-length")
+async def debug_key_length():
+    from app.config import settings
+    key = settings.pseudogram_api_key
+    return {
+        "length": len(key),
+        "first_5": key[:5],
+        "last_5": key[-5:],
+    }
