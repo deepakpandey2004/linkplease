@@ -60,6 +60,20 @@ app.include_router(rules.router)
 app.include_router(stats.router)
 app.include_router(webhook.router)
 
+@app.get("/")
+async def root():
+    return {
+        "service": "linkplease",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "docs": "/docs",
+            "rules": "POST /rules",
+            "webhook": "POST /webhook",
+            "stats": "GET /stats"
+        }
+    }
+
 
 @app.get("/health")
 async def health_check():
